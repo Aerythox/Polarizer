@@ -1,0 +1,28 @@
+{
+  "name": "invoice-lab-api",
+  "version": "0.1.0",
+  "description": "Deliberately insecure invoicing API for authorization testing. Never deploy.",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "lab": "node scripts/lab.js",
+    "test:common": "node --test test/common.test.js",
+    "test:vulnerable": "node --test test/vulnerable.test.js",
+    "test:fixed": "node --test test/fixed.test.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "express": "^5.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.12.0"
+  },
+  "devDependencies": {
+    "mongodb-memory-server": "^11.3.0",
+    "supertest": "^7.3.1"
+  }
+}

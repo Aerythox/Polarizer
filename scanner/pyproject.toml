@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "polarizer"
+version = "0.1.0"
+description = "Replays API requests across user identities to find broken authorization."
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{ name = "Patrick Cruz" }]
+dependencies = [
+    "httpx>=0.27",
+    "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+polarizer = "polarizer.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["polarizer*"]
+
+[tool.setuptools.package-data]
+polarizer = ["wordlist.txt"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

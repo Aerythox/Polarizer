@@ -1,0 +1,37 @@
+# Polarizer config for the invoice lab in this repo.
+#
+# Tokens are read from environment variables, never stored here. Get them with:
+#   python examples/get_tokens.py
+# which logs in the lab's test users and prints the variables to set.
+
+target:
+  base_url: http://127.0.0.1:3000
+  spec: ../../target-api/openapi.yaml
+
+identities:
+  user_a:
+    token_env: POLARIZER_TOKEN_A      # Alice
+  user_b:
+    token_env: POLARIZER_TOKEN_B      # Bob
+  admin:
+    token_env: POLARIZER_TOKEN_ADMIN  # Admin
+
+# An object each identity owns, per path parameter. Used to test whether one
+# user can reach another user's object.
+resources:
+  number:
+    user_a: 1001   # Alice owns invoice 1001
+    user_b: 1003   # Bob owns invoice 1003
+
+# Routes that should be reachable only by an admin. Polarizer calls each one as
+# a non-admin. /admin/stats is listed too, to confirm it is NOT flagged.
+admin_only:
+  - GET /admin/users
+  - GET /admin/stats
+
+# Fields a user must not be able to set on themselves. Needs --allow-writes.
+mass_assignment:
+  - update: PATCH /profile/me
+    read: GET /profile/me
+    field: role
+    value: admin

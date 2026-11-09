@@ -1,0 +1,27 @@
+# Secrets and local settings
+.env
+.env.*
+!.env.example
+
+# Node
+node_modules/
+
+# Python (virtualenvs bake in absolute paths, so never commit them)
+.venv/
+.venv*/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+
+# Scanner output
+reports/
+
+# Terminal recordings (raw casts can contain your username and paths; commit
+# only the finished docs/demo.gif)
+*.cast
+
+# OS and editor
+.DS_Store
+Thumbs.db
+.vscode/

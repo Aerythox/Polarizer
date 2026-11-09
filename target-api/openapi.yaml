@@ -1,0 +1,161 @@
+openapi: 3.0.3
+info:
+  title: Invoice Lab API
+  version: 0.1.0
+  description: >
+    Deliberately insecure fictional invoicing API for authorization testing.
+    All data is fake. Run it only on your own machine and never deploy it.
+servers:
+  - url: http://127.0.0.1:3000
+security:
+  - bearerAuth: []
+paths:
+  /health:
+    get:
+      summary: Report service status and mode
+      security: []
+      responses:
+        '200':
+          description: Service is running
+  /auth/login:
+    post:
+      summary: Log in and receive a token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string }
+                password: { type: string }
+      responses:
+        '200':
+          description: Login succeeded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token: { type: string }
+        '401':
+          description: Wrong email or password
+  /invoices:
+    get:
+      summary: List the caller's invoices
+      responses:
+        '200':
+          description: The caller's invoices
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Invoice' }
+        '401':
+          description: Missing or invalid token
+  /invoices/{number}:
+    get:
+      summary: Get one of the caller's invoices
+      parameters:
+        - name: number
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: The invoice
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Invoice' }
+        '401':
+          description: Missing or invalid token
+        '404':
+          description: No such invoice for this caller
+  /profile/me:
+    get:
+      summary: Get the caller's profile
+      responses:
+        '200':
+          description: The profile
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        '401':
+          description: Missing or invalid token
+    patch:
+      summary: Update the caller's name or email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name: { type: string }
+                email: { type: string }
+      responses:
+        '200':
+          description: The updated profile
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        '401':
+          description: Missing or invalid token
+  /admin/users:
+    get:
+      summary: List all users (admin only)
+      responses:
+        '200':
+          description: All users
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/User' }
+        '401':
+          description: Missing or invalid token
+        '403':
+          description: Caller is not an admin
+  /admin/stats:
+    get:
+      summary: Get user and invoice counts (admin only)
+      responses:
+        '200':
+          description: The counts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userCount: { type: integer }
+                  invoiceCount: { type: integer }
+        '401':
+          description: Missing or invalid token
+        '403':
+          description: Caller is not an admin
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    User:
+      type: object
+      properties:
+        _id: { type: string }
+        name: { type: string }
+        email: { type: string }
+        role: { type: string, enum: [user, admin] }
+    Invoice:
+      type: object
+      properties:
+        _id: { type: string }
+        number: { type: integer }
+        ownerId: { type: string }
+        customer: { type: string }
+        amountCents: { type: integer }
+        currency: { type: string }
+        status: { type: string, enum: [draft, sent, paid] }

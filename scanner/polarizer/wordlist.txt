@@ -1,0 +1,32 @@
+# Small list of weak JWT signing secrets, used offline to show when a token's
+# secret is guessable. This is not a cracking tool: it is a short list of the
+# obvious defaults a developer should never ship.
+secret
+secret123
+secretkey
+secret_key
+supersecret
+jwt
+jwtsecret
+jwt_secret
+jsonwebtoken
+password
+password123
+changeme
+change-me
+default
+test
+testing
+dev
+development
+mysecret
+mysecretkey
+your-256-bit-secret
+your_jwt_secret
+admin
+token
+key
+apikey
+123456
+qwerty
+letmein

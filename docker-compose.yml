@@ -1,0 +1,39 @@
+name: polarizer
+
+services:
+  api:
+    build: ./target-api
+    environment:
+      APP_MODE: ${APP_MODE:?Set APP_MODE to vulnerable or fixed. See .env.example}
+      JWT_SECRET: ${JWT_SECRET:-}
+      # Inside the container the app must listen on all container interfaces,
+      # or the published port cannot reach it. The port mapping below is what
+      # limits access to this machine.
+      HOST: 0.0.0.0
+      PORT: "3000"
+      MONGO_URI: mongodb://mongo:27017/invoice_lab
+      SEED_ON_START: "true"
+    ports:
+      - "127.0.0.1:3000:3000"
+    # Healthy only once the server answers /health. The app seeds the database
+    # before it starts listening, so this also means the test accounts exist,
+    # and `docker compose up --wait` cannot return too early.
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 5s
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  # No published port and no volume: Mongo is only reachable by the API,
+  # and the data resets whenever the container is recreated.
+  mongo:
+    image: mongo:7
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 3s
+      timeout: 3s
+      retries: 20

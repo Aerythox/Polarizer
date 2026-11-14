@@ -49,10 +49,16 @@ jobs:
       - run: pip install -e ./scanner
 
       - name: Scanner must flag the vulnerable API (expect exit 1)
+        # Step-level env, so up, logs and down all see the same values. The
+        # compose file requires APP_MODE, and the runner has no .env file.
+        env:
+          APP_MODE: vulnerable
+          JWT_SECRET: secret123
         run: |
-          # On any failure, print the API logs before tearing the lab down.
-          trap 'rc=$?; [ "$rc" -ne 0 ] && docker compose logs api; docker compose down -v' EXIT
-          APP_MODE=vulnerable JWT_SECRET=secret123 docker compose up -d --build --wait --wait-timeout 180
+          # Cleanup prints the API logs on failure, then always ends with the
+          # step's original exit code, so it can never hide or cause a failure.
+          trap 'rc=$?; set +e; [ "$rc" -ne 0 ] && docker compose logs api; docker compose down -v; exit "$rc"' EXIT
+          docker compose up -d --build --wait --wait-timeout 180
           # Assigned first so a failed login stops the step with its real error.
           TOKENS=$(python scanner/examples/get_tokens.py)
           eval "$TOKENS"
@@ -64,10 +70,15 @@ jobs:
           test "$code" -eq 1
 
       - name: Scanner must pass the fixed API (expect exit 0)
+        env:
+          APP_MODE: fixed
         run: |
-          trap 'rc=$?; [ "$rc" -ne 0 ] && docker compose logs api; docker compose down -v' EXIT
-          SECRET=$(python -c "import secrets; print(secrets.token_hex(48))")
-          APP_MODE=fixed JWT_SECRET=$SECRET docker compose up -d --build --wait --wait-timeout 180
+          # Generated per run, exported before any compose call, and masked in logs.
+          JWT_SECRET=$(python -c "import secrets; print(secrets.token_hex(48))")
+          export JWT_SECRET
+          echo "::add-mask::$JWT_SECRET"
+          trap 'rc=$?; set +e; [ "$rc" -ne 0 ] && docker compose logs api; docker compose down -v; exit "$rc"' EXIT
+          docker compose up -d --build --wait --wait-timeout 180
           TOKENS=$(python scanner/examples/get_tokens.py)
           eval "$TOKENS"
           polarizer scan --config scanner/examples/lab.yaml --allow-writes --quiet
